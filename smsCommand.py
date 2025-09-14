@@ -16,13 +16,13 @@ def process(fromNumber, toNumber, message):
 		messageParts[0] = messageParts[0].upper()
 
 		if messageParts[0] == "HELP":
-			return "No tak, przydaloby sie kiedys napisac pomoc..."
+			return "Yup, this should definitely be written someday..."
 
 		elif messageParts[0] == "UPTIME":
 			return subprocess.check_output(["uptime","-p"]).decode().strip()
 
 		elif messageParts[0] == "TEST":
-			return "Numer 1000, wiadomosc od " + str(fromNumber) + ", tresc: " + message
+			return "Number 1000 here, message from " + str(fromNumber) + ", entry: " + message
 
 		return smsSuiteConfig.WRONG_COMMAND
 
