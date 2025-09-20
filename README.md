@@ -5,7 +5,7 @@
 The goal of this project is to provide a set of tools for processing and controlling the flow of short messages of different types in the Asterisk PBX.
 This suite can correctly route SMS-es and SIP instant messages and also resend them as a fax or voice messages to the non-messaging channels making it a ready-to-use solution for instant messaging of any kind.
 
-## Important note
+## Important notes
 
 This set of tools was created for SIP-configured Asterisk working on Linux system (especially Debian).
 It should work with PJSIP configurations, but I haven't tested it (it's yet to be done in my configuration).
