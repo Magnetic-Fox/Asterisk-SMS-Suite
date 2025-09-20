@@ -7,7 +7,7 @@ This suite can correctly route SMS-es and SIP instant messages and also resend t
 
 ## Important note
 
-This set of tools were created for SIP-configured Asterisk working on Linux system (especially Debian).
+This set of tools was created for SIP-configured Asterisk working on Linux system (especially Debian).
 It should work with PJSIP configurations, but I haven't tested it (it's yet to be done in my configuration).
 These tools might need some kind of fine tuning to work with PJSIP configurations properly.
 
