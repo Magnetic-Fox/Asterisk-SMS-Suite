@@ -11,8 +11,9 @@ This set of tools was created for SIP-configured Asterisk working on Linux syste
 It should work with PJSIP configurations, but I haven't tested it (it's yet to be done in my configuration).
 These tools might need some kind of fine tuning to work with PJSIP configurations properly.
 
-Default configuration values (provided in configuration scripts) assume that Asterisk and its directories are located in their default locations (`/etc/asterisk`, `/var/spool/asterisk`, etc.).
+Default configuration values (provided in configuration scripts and `sms-process.sh`) assume that Asterisk and its directories are located in their default locations (`/etc/asterisk`, `/var/spool/asterisk`, etc.) and that there is a dedicated directory for all scripts at `/etc/asterisk/scripts`.
 
+**This solution was created for Asterisk 16.28.** However it should work with the newer versions.
 I haven't tested if these tools can work properly on systems other than Linux.
 
 ## Differences between SMS technology and SIP messaging
@@ -50,7 +51,7 @@ I've defined six indicators for services:
 ## Dependencies
 
 These tools need some other packages and libraries to work.
-Here are the list (hope I remember everything):
+Here is the list (hope I remember everything):
 
 1. Asterisk (of course)
 2. smsq (should be part of the Asterisk package)
@@ -61,6 +62,26 @@ Here are the list (hope I remember everything):
 7. ghostscript (gs)
 8. Imagemagick (convert)
 9. libtiff-tools (tiffset)
+
+## Default (and additional) directories
+
+Default configurations provided here assume that Asterisk and other tools are in the specific locations.
+Here is the list:
+
+1. `/etc/asterisk` - main configuration directory for Asterisk
+2. `/etc/asterisk/scripts` - **additional** directory for all scripts from this suite
+3. `/var/spool/asterisk` - spool directory for Asterisk
+4. `/var/spool/asterisk/sms` - SMS part of Asterisk's spool directory
+5. `/var/spool/asterisk/sms/morx` - directory for received SMS-es
+6. `/var/spool/asterisk/outgoing` - directory for `.call` files (originating calls)
+7. `/var/spool/T.38` - **additional** directory for faxes (don't have to be T.38 - I've used such name, because T.38 was first way of faxing in Asterisk I used; now I'm using audio stream but the name stayed the same ;))
+8. `/var/spool/T.38/outgoing` - **additional** directory for TIFFs to be sent
+9. `/var/spool/Voice` - **additional** directory for voice files
+10. `/var/spool/Voice/outgoing` - **additional** directory for voice files to be played on call
+
+Additional above means that those directories didn't exist previously in the installation.
+They were created by me to make performing additional functions easier.
+They are now **used and necessary** in this software (`scripts` in the configurations, `T.38` and `Voice` in spool).
 
 ## Tools, in brief
 
@@ -97,4 +118,4 @@ Free for personal use. You probably shouldn't use these solutions commercially (
 However, if You still like to anyway, please ask me before.
 
 Bartłomiej "Magnetic-Fox" Węgrzyn,
-20th September 2025
+20-24th September 2025
