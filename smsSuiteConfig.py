@@ -3,13 +3,13 @@
 # SMS Suite Main Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04 - 14.09.2025
+# by Magnetic-Fox, 20.04 - 08.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
 
 # Fax settings
-FAX_HEADER_TEXT = "SMS from "
+FAX_HEADER_TEXT = "Text message from "
 FAX_TIME_TEXT = " sent "
 
 FAX_IMG_DIR = "/var/spool/T.38/outgoing"
@@ -32,7 +32,7 @@ ARCHIVE_CALL_FILE_FAX = True
 # Voice settings
 LANG_VOICE = "en"
 
-HEADER_TEXT_VOICE = "SMS from "
+HEADER_TEXT_VOICE = "Message from "
 TIME_TEXT_VOICE = " sent "
 TIME_AT_TEXT_VOICE = "at"
 REFERENCE_TEXT = " having reference number "
@@ -47,6 +47,12 @@ WAIT_TIME_VOICE = 40
 RETRY_TIME_VOICE = 600
 MAX_RETRIES_VOICE = 10
 ARCHIVE_CALL_FILE_VOICE = True
+
+
+
+# Additional SIP IM settings
+# remember to enable concatenated SMS support in the Bash script too for this to work properly!
+USE_CONCATENATED_SMS = True
 
 
 
