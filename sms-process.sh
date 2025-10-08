@@ -28,6 +28,9 @@ SMSCONCT='/etc/asterisk/scripts/concatenatedSMSSender.py'
 
 # Error texts presented to user (avoid non-ASCII characters!)
 CANTDELIVER='Cannot deliver SMS to'
+CANTDELIVER_R1='VoIP user is not logged in.'
+CANTDELIVER_R2='User has deactivated messaging service.'
+CANTDELIVER_R3='The number does not exist.'
 
 # Error texts logged on server (whatever You wish)
 CANNOTSEND='Cannot send SMS to'
@@ -112,7 +115,7 @@ for SMS in `ls -1 "$SPOOL"`; do
 
 			# If source number can receive SMS back, then send it
 			if [ "${SRC_SERVICE}" == "S" ]; then
-				ERR_MESSAGE="${CANTDELIVER} ${DST}."
+				ERR_MESSAGE="${CANTDELIVER} ${DST}. ${CANTDELIVER_R1}"
 
 				if [ $USECONCAT -eq 1 ] && [ ${#ERR_MESSAGE} -gt 160 ]; then
 					${SMSCONCT} "${SMSCS}" "${SRC_EXTENSION}" "${SMSCR}" "${ERR_MESSAGE}" "XPARAM_NONE" "XPARAM_NONE" "${SRC}"
@@ -126,7 +129,7 @@ for SMS in `ls -1 "$SPOOL"`; do
 			fi
 		fi
 
-	# Got unknown destination number (deliver error message)
+	# Got unknown destination number or user has deactivated messaging service (got N messaging service code) - deliver error message
 	else
 		# Get information about source number for further processing
 		CHAN_SERVICE_SRC=`${CHANINFO} "${SRC}"`
@@ -135,8 +138,15 @@ for SMS in `ls -1 "$SPOOL"`; do
 
 		# If source number can receive SMS back, then send it
 		if [ "${SRC_SERVICE}" == "S" ]; then
-			ERR_MESSAGE="${CANTDELIVER} ${DST}."
+			# If user has deactivated messaging service...
+			if [ "${SERVICE}" == "N" ]; then
+				ERR_MESSAGE="${CANTDELIVER} ${DST}. ${CANTDELIVER_R2}"
+			# If got unknown phone number...
+			else
+				ERR_MESSAGE="${CANTDELIVER} ${DST}. ${CANTDELIVER_R3}"
+			fi
 
+			# Actual error message sending
 			if [ $USECONCAT -eq 1 ] && [ ${#ERR_MESSAGE} -gt 160 ]; then
 				${SMSCONCT} "${SMSCS}" "${SRC_EXTENSION}" "${SMSCR}" "${ERR_MESSAGE}" "XPARAM_NONE" "XPARAM_NONE" "${SRC}"
 			else
