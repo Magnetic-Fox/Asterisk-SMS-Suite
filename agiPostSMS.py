@@ -2,7 +2,7 @@
 
 # AGI Script for posting SIP IM as an SMS
 #
-# by Magnetic-Fox, 10-13.09.2025
+# by Magnetic-Fox, 10-13.09.2025, 08.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -73,10 +73,15 @@ def AGI_getAndPostSMS():
 
 		ud = ud.lstrip().rstrip()
 
-		# If sending SMS - get rid of any UTF-8 accents and divide into 160-character-sized messages...
+		# If sending SMS - get rid of any UTF-8 accents (UCS2 to be addressed someday) and divide into 160-character-sized messages (if not using concatenation)...
 		if getChanInfo.getChanInfo(da)[1] == "S":
 			ud = unidecode.unidecode(ud)
-			ud = divideString(ud, 160)
+
+			if smsSuiteConfig.USE_CONCATENATED_SMS:
+				# In such case just do nothing (pack it only to the array) - Bash script will have to handle rest
+				ud = [ud]
+			else:
+				ud = divideString(ud, 160)
 
 		else:
 			# Simple workaround for code below
@@ -84,7 +89,7 @@ def AGI_getAndPostSMS():
 
 		# Post all messages
 		for s_ud in ud:
-			# Let's use current date and random reference number for the message
+			# Let's use current date and random 8-bit reference number for the message
 			scts = str(datetime.datetime.now().replace(microsecond = 0).isoformat())
 			mr = str(random.randrange(0, 255, 1))
 
