@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Simple SMS Command utility (simple experiment - do not take really seriously)
+# Simple SMS Command utility
 #
-# by Magnetic-Fox, 01.05 - 14.09.2025
+# by Magnetic-Fox, 01.05 - 13.09.2025, 08.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -23,6 +23,9 @@ def process(fromNumber, toNumber, message):
 
 		elif messageParts[0] == "TEST":
 			return "Number 1000 here, message from " + str(fromNumber) + ", entry: " + message
+
+		elif messageParts[0] == "TEST2":
+			return "START 12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890 END"
 
 		return smsSuiteConfig.WRONG_COMMAND
 
