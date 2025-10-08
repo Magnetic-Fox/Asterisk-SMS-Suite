@@ -2,7 +2,7 @@
 
 # SMS processor utility
 #
-# by Magnetic-Fox, 17.04 - 13.09.2025
+# by Magnetic-Fox, 17.04 - 13.09.2025, 08.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -15,19 +15,23 @@ SPOOL='/var/spool/asterisk/sms/morx'
 SMSCR='9000'
 SMSCS='9001'
 
+# Additional SMS settings (switch for concatenated SMS support)
+USECONCAT=1
+
 # Other software paths (should be absolute)
 CHANINFO='/etc/asterisk/scripts/getChanInfo.py'
 SMSTOFAX='/etc/asterisk/scripts/smsToFax.py'
 SMSTOSND='/etc/asterisk/scripts/smsToVoice.py'
 SMSCMDPY='/etc/asterisk/scripts/smsCommand.py'
 SIPIMSND='/etc/asterisk/scripts/amiSendSIPIM.py'
+SMSCONCT='/etc/asterisk/scripts/concatenatedSMSSender.py'
 
 # Error texts presented to user (avoid non-ASCII characters!)
-CANTDELIVER='Cannot deliver SMS to'
+CANTDELIVER='Nie udalo sie dostarczyc wiadomosci SMS do numeru'
 
 # Error texts logged on server (whatever You wish)
-CANNOTSEND='Cannot send SMS to'
-CANTDELTASK='Could not safely delete received SMS!'
+CANNOTSEND='Nie udało się wysłać wiadomości SMS do numeru'
+CANTDELTASK='Nie udało się bezpiecznie usunąć odebranej wiadomości SMS!'
 
 
 
@@ -49,7 +53,11 @@ for SMS in `ls -1 "$SPOOL"`; do
 
 	# Deliver SMS normally
 	if [ "${SERVICE}" == "S" ]; then
-		smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${EXTENSION}" --oa="${SRC}" --ud="${MSG}" --scts="${SCTS}" --mr="${MR}" --queue="${DST}"
+		if [ $USECONCAT -eq 1 ] && [ ${#MSG} -gt 160 ]; then
+			${SMSCONCT} "${SMSCS}" "${EXTENSION}" "${SRC}" "${MSG}" "${SCTS}" "${MR}" "${DST}"
+		else
+			smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${EXTENSION}" --oa="${SRC}" --ud="${MSG}" --scts="${SCTS}" --mr="${MR}" --queue="${DST}"
+		fi
 
 	# Deliver SMS as a fax
 	elif [ "${SERVICE}" == "F" ]; then
@@ -71,7 +79,11 @@ for SMS in `ls -1 "$SPOOL"`; do
 
 		# If source number can receive SMS back, then send command's answer
 		if [ "${SRC_SERVICE}" == "S" ]; then
-			smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${SRC_EXTENSION}" --oa="${DST}" --ud="${SMS_RESPONSE}" --queue="${SRC}"
+			if [ $USECONCAT -eq 1 ] && [ ${#SMS_RESPONSE} -gt 160 ]; then
+				${SMSCONCT} "${SMSCS}" "${SRC_EXTENSION}" "${DST}" "${SMS_RESPONSE}" "XPARAM_NONE" "XPARAM_NONE" "${SRC}"
+			else
+				smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${SRC_EXTENSION}" --oa="${DST}" --ud="${SMS_RESPONSE}" --queue="${SRC}"
+			fi
 
 		# If source number can receive SIP IM back, then send command's answer
 		elif [ "${SRC_SERVICE}" == "T" ]; then
@@ -100,7 +112,13 @@ for SMS in `ls -1 "$SPOOL"`; do
 
 			# If source number can receive SMS back, then send it
 			if [ "${SRC_SERVICE}" == "S" ]; then
-				smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${SRC_EXTENSION}" --oa="${SMSCR}" --ud="${CANTDELIVER} ${DST}." --queue="${SRC}"
+				ERR_MESSAGE="${CANTDELIVER} ${DST}."
+
+				if [ $USECONCAT -eq 1 ] && [ ${#ERR_MESSAGE} -gt 160 ]; then
+					${SMSCONCT} "${SMSCS}" "${SRC_EXTENSION}" "${SMSCR}" "${ERR_MESSAGE}" "XPARAM_NONE" "XPARAM_NONE" "${SRC}"
+				else
+					smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${SRC_EXTENSION}" --oa="${SMSCR}" --ud="${ERR_MESSAGE}" --queue="${SRC}"
+				fi
 
 			# If not, then drop it, but leave some information in the server log
 			else
@@ -117,7 +135,13 @@ for SMS in `ls -1 "$SPOOL"`; do
 
 		# If source number can receive SMS back, then send it
 		if [ "${SRC_SERVICE}" == "S" ]; then
-			smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${SRC_EXTENSION}" --oa="${SMSCR}" --ud="${CANTDELIVER} ${DST}." --queue="${SRC}"
+			ERR_MESSAGE="${CANTDELIVER} ${DST}."
+
+			if [ $USECONCAT -eq 1 ] && [ ${#ERR_MESSAGE} -gt 160 ]; then
+				${SMSCONCT} "${SMSCS}" "${SRC_EXTENSION}" "${SMSCR}" "${ERR_MESSAGE}" "XPARAM_NONE" "XPARAM_NONE" "${SRC}"
+			else
+				smsq --mt --tx --mttx-callerid="${SMSCS}" --mttx-channel="${SRC_EXTENSION}" --oa="${SMSCR}" --ud="${ERR_MESSAGE}" --queue="${SRC}"
+			fi
 
 		# If not, then drop it, but leave some information in the server log
 		else
