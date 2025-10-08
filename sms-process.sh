@@ -27,11 +27,11 @@ SIPIMSND='/etc/asterisk/scripts/amiSendSIPIM.py'
 SMSCONCT='/etc/asterisk/scripts/concatenatedSMSSender.py'
 
 # Error texts presented to user (avoid non-ASCII characters!)
-CANTDELIVER='Nie udalo sie dostarczyc wiadomosci SMS do numeru'
+CANTDELIVER='Cannot deliver SMS to'
 
 # Error texts logged on server (whatever You wish)
-CANNOTSEND='Nie udało się wysłać wiadomości SMS do numeru'
-CANTDELTASK='Nie udało się bezpiecznie usunąć odebranej wiadomości SMS!'
+CANNOTSEND='Cannot send SMS to'
+CANTDELTASK='Could not safely delete received SMS!'
 
 
 
