@@ -3,7 +3,7 @@
 # SMS Suite Main Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04 - 08.10.2025
+# by Magnetic-Fox, 20.04 - 09.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -31,6 +31,7 @@ ARCHIVE_CALL_FILE_FAX = True
 
 # Voice settings
 LANG_VOICE = "en"
+VOICE_SLOW = False
 
 HEADER_TEXT_VOICE = "Message from "
 TIME_TEXT_VOICE = " sent "
@@ -61,6 +62,9 @@ ASTERISK_SPOOL = "/var/spool/asterisk/outgoing"
 
 # Asterisk's received SMS-es spool folder
 AST_SMS_SPOOL = "/var/spool/asterisk/sms/morx"
+
+# Asterisk's temporary spool directory
+AST_TEMP_SPOOL = "/var/spool/asterisk/tmp"
 
 
 
