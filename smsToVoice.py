@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Simple SMS to Voice relay utilizing Google Text-to-speech library (GTTS)
+# Simple SMS to Voice relay utilizing Google Text-to-speech library (GTTS) and FFmpeg
 #
-# by Magnetic-Fox, 19.04 - 13.09.2025
+# by Magnetic-Fox, 19.04 - 13.09.2025, 09.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -14,12 +14,18 @@ import datetime
 import gtts
 import smsSuiteConfig
 
+# Simple name generation helper
+def generateDateTimeName(prefix = "", postfix = "", date = None):
+	if date == None:
+		date = datetime.datetime.now()
+	return prefix + date.strftime("%Y-%m-%d-%H-%M-%S-%f") + postfix
+
 # Simple error logging utility...
 def logError(errorString):
 	subprocess.check_output(["logger", errorString])
 	return
 
-# Asterisk call file creation utility...
+# Asterisk call file creation utility (depending on smsSuiteConfig)...
 def generateCallFile(toExtension, voiceFilePathNoExt, callFileName):
 	callFile = open(callFileName, "w")
 	callFile.write("Channel: " + toExtension + "\n")
@@ -43,61 +49,60 @@ def generateCallFile(toExtension, voiceFilePathNoExt, callFileName):
 
 	return
 
+# Simple header generator
+def generateHeader(fromNumber, dateTime, messageReference):
+	header = smsSuiteConfig.HEADER_TEXT_VOICE
+	header += '"' + str(fromNumber) + '"'
+
+	if smsSuiteConfig.GIVE_DATE_VOICE:
+		header += smsSuiteConfig.TIME_TEXT_VOICE
+		header += datetime.datetime.fromisoformat(dateTime).strftime("%d-%m-%Y " + smsSuiteConfig.TIME_AT_TEXT_VOICE + " %H:%M:%S")
+
+	if smsSuiteConfig.GIVE_REFERENCE_NUMBER_VOICE:
+		header += smsSuiteConfig.REFERENCE_TEXT
+		header += '"' + str(messageReference) + '"'
+
+	header += "."
+
+	return header
+
 # All processing utility...
 def process(fromNumber, toNumber, toExtension, message, dateTime, messageReference):
 	try:
+		# Prepare temporary directory
 		oldDir = os.getcwd()
 		dir = tempfile.TemporaryDirectory()
 		os.chdir(dir.name)
 
-		header = smsSuiteConfig.HEADER_TEXT_VOICE
-		header += '"' + str(fromNumber) + '"'
+		# Add header to the message
+		messageWithHeader = generateHeader(fromNumber, dateTime, messageReference) + " " + message
 
-		if smsSuiteConfig.GIVE_DATE_VOICE:
-			header += smsSuiteConfig.TIME_TEXT_VOICE
-			header += datetime.datetime.fromisoformat(dateTime).strftime("%d-%m-%Y " + smsSuiteConfig.TIME_AT_TEXT_VOICE + " %H:%M:%S")
+		# Generate file names for voice and call file (to number and date and time)
+		voiceFileName = generateDateTimeName(str(toNumber) + "-", ".mp3")
+		callFileName = generateDateTimeName(str(toNumber) + "-", ".call")
 
-		if smsSuiteConfig.GIVE_REFERENCE_NUMBER_VOICE:
-			header += smsSuiteConfig.REFERENCE_TEXT
-			header += '"' + str(messageReference) + '"'
-
-		header += "."
-
-		all = header + " " + message
-
-		currentTime = datetime.datetime.now()
-
-		dateTimeName = str(toNumber)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.year)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.month)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.day)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.hour)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.minute)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.second)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.microsecond)
-
-		voiceFileName = "voice-"
-		voiceFileName += dateTimeName
-		voiceFileName += ".mp3"
-
-		tts = gtts.gTTS(text = all, lang = smsSuiteConfig.LANG_VOICE, slow = False)
+		# Generate voice file using Google Text-to-speech library (GTTS)
+		tts = gtts.gTTS(text = messageWithHeader, lang = smsSuiteConfig.LANG_VOICE, slow = smsSuiteConfig.VOICE_SLOW)
 		tts.save(voiceFileName)
 
+		# Convert MP3 file to 8000Hz WAVE file using FFmpeg
 		fN, fExt = os.path.splitext(voiceFileName)
 		subprocess.check_output(["ffmpeg", "-i", voiceFileName, "-af", "adelay=1s:all=true", "-ar", "8000", fN + ".wav"])
+
+		# Move voice file to its outgoing directory
 		subprocess.check_output(["mv", fN + ".wav", smsSuiteConfig.VOICE_FILE_DIR])
+
+		# Store path to the voice file without extension (this is needed by Asterisk)
 		voiceFilePathNoExt = smsSuiteConfig.VOICE_FILE_DIR + "/" + fN
 
-		callFileName = dateTimeName + ".call"
+		# Generate call file
 		generateCallFile(toExtension, voiceFilePathNoExt, callFileName)
-		subprocess.check_output(["mv", callFileName, smsSuiteConfig.ASTERISK_SPOOL + "/" + callFileName])
+
+		# Move call file to the Asterisk's temporary spool directory (which definitely should be on the same disk as 'outgoing' directory!)
+		subprocess.check_output(["mv", callFileName, smsSuiteConfig.AST_TEMP_SPOOL])
+
+		# Move call file to the 'outgoing' directory
+		subprocess.check_output(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
 
 	except Exception as e:
 		logError(str(e))
