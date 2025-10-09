@@ -2,7 +2,7 @@
 
 # Simple SMS to Fax relay
 #
-# by Magnetic-Fox, 19.04.2025 - 13.09.2025
+# by Magnetic-Fox, 19.04.2025 - 13.09.2025, 09.10.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -14,12 +14,18 @@ import datetime
 import cutter
 import smsSuiteConfig
 
+# Simple name generation helper
+def generateDateTimeName(prefix = "", postfix = "", date = None):
+	if date == None:
+		date = datetime.datetime.now()
+	return prefix + date.strftime("%Y-%m-%d-%H-%M-%S-%f") + postfix
+
 # Simple error logging utility...
 def logError(errorString):
         subprocess.check_output(["logger", errorString])
         return
 
-# Asterisk call file creation utility...
+# Asterisk call file creation utility (depends on settings from smsSuiteConfig)...
 def generateCallFile(toExtension, tiffFilePath, callFileName):
 	callFile = open(callFileName, "w")
 	callFile.write("Channel: " + toExtension + "\n")
@@ -48,58 +54,52 @@ def generateCallFile(toExtension, tiffFilePath, callFileName):
 
 	return
 
+# Simple header generator
+def generateHeader(fromNumber, dateTime, messageReference):
+	header = smsSuiteConfig.FAX_HEADER_TEXT
+	header += str(fromNumber)
+	header += smsSuiteConfig.FAX_TIME_TEXT
+	header += datetime.datetime.fromisoformat(dateTime).strftime("%Y/%m/%d %H:%M:%S")
+	header += " ("
+	header += str(messageReference)
+	header += ")"
+	header += "\n"
+	header += (len(header) * '-')
+	header += "\n"
+
+	return header
+
+# Very simple for writing message to the text file
+def writeMessage(messageFileName, message):
+	txt = open(messageFileName, "w")
+	txt.write(message)
+	txt.close()
+
+	return
+
 # All processing utility...
 def process(fromNumber, toNumber, toExtension, message, dateTime, messageReference):
 	try:
+		# Prepare temporary directory
 		oldDir = os.getcwd()
 		dir = tempfile.TemporaryDirectory()
 		os.chdir(dir.name)
 
-		header = smsSuiteConfig.FAX_HEADER_TEXT
-		header += str(fromNumber)
-		header += smsSuiteConfig.FAX_TIME_TEXT
-		header += datetime.datetime.fromisoformat(dateTime).strftime("%Y/%m/%d %H:%M:%S")
-		header += " ("
-		header += str(messageReference)
-		header += ")"
-		header += "\n"
-		header += (len(header) * '-')
-		header += "\n"
+		# Generate file names (to which number + date and time)
+		textFileName = generateDateTimeName(str(toNumber) + "-", ".txt")
+		tiffFileName = generateDateTimeName(str(toNumber) + "-", ".tiff")
+		callFileName = generateDateTimeName(str(toNumber) + "-", ".call")
 
-		all = header + message
+		# Prepare message with header and write it out to the text file
+		messageWithHeader = generateHeader(fromNumber, dateTime, messageReference) + message
+		writeMessage(textFileName, messageWithHeader)
 
-		txt = open("message.txt", "w")
-		txt.write(all)
-		txt.close()
-
-		currentTime = datetime.datetime.now()
-
-		dateTimeName = str(toNumber)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.year)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.month)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.day)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.hour)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.minute)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.second)
-		dateTimeName += "-"
-		dateTimeName += str(currentTime.microsecond)
-
-		tiffFileName = "fax-"
-		tiffFileName += dateTimeName
-		tiffFileName += ".tiff"
-
-		callFileName = dateTimeName + ".call"
-
-		paps = subprocess.Popen(["paps", "--top-margin=18", "--font=Monospace 10", "message.txt"], stdout = subprocess.PIPE)
+		# Convert text to the image and convert to the G3 TIFF file
+		paps = subprocess.Popen(["paps", "--top-margin=18", "--font=Monospace 10", textFileName], stdout = subprocess.PIPE)
 		subprocess.check_output(["gs", "-sDEVICE=tiffg3", "-sOutputFile=" + tiffFileName, "-dBATCH", "-dNOPAUSE", "-dSAFER", "-dQUIET", "-"], stdin = paps.stdout)
 		paps.wait()
 
+		# Crop unnecessary white part (makes less fax recording paper waste)
 		cutter.loadAndCrop(tiffFileName)
 
 		# Resize for standard resolution (make it smaller)
@@ -110,6 +110,7 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		elif smsSuiteConfig.FAX_RESOLUTION == 2:
 			subprocess.check_output(["convert", tiffFileName, "-resize", "x200%", tiffFileName])
 
+		# Add parameters to the TIFF image (add resolution information)
 		subprocess.check_output(["tiffset", "-s", "296", "2", tiffFileName])
 		subprocess.check_output(["tiffset", "-s", "282", "204.0", tiffFileName])
 
@@ -117,7 +118,7 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		if smsSuiteConfig.FAX_RESOLUTION == 0:
 			subprocess.check_output(["tiffset", "-s", "283", "98.0", tiffFileName])
 
-		# Super fine resolution
+		# Super fine resolution (please note that not every fax will support it!)
 		elif smsSuiteConfig.FAX_RESOLUTION == 2:
 			subprocess.check_output(["tiffset", "-s", "283", "391.0", tiffFileName])
 
@@ -125,10 +126,17 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		else:
 			subprocess.check_output(["tiffset", "-s", "283", "196.0", tiffFileName])
 
+		# Move prepared fax page (G3 TIFF) to outgoing faxes directory
 		subprocess.check_output(["mv", tiffFileName, smsSuiteConfig.FAX_IMG_DIR])
 
+		# Generate call file
 		generateCallFile(toExtension, smsSuiteConfig.FAX_IMG_DIR + "/" + tiffFileName, callFileName)
-		subprocess.check_output(["mv", callFileName, smsSuiteConfig.ASTERISK_SPOOL])
+
+		# Move call file to the Asterisk's temporary spool folder (which should definitely be on the same disk 'outgoing' directory is)
+		subprocess.check_output(["mv", callFileName, smsSuiteConfig.AST_TEMP_SPOOL])
+
+		# Move call file to the Asterisk's 'outgoing' directory
+		subprocess.check_output(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
 
 	except Exception as e:
 		logError(str(e))
