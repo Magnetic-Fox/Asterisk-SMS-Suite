@@ -103,6 +103,7 @@ There is also one auxiliary script called `cutter.py` which is used to automatic
 11. `smsSuiteConfig.py` - simple configuration script for most of the tools
 12. `sqlConfig.py` - simple configuration for SQL credentials
 13. `amiConfig.py` - simple configuration for AMI credentials
+14. `concatenatedSMSSender.py` - helper for sending concatenated SMS-es (for messages longer than 160 characters)
 
 In fact, only `sms-process.sh`, `agiGetChanInfo.py` and `agiPostSMS.py` are explicitly seen as used (in `extensions.conf`).
 Use of other tools is automated (seen in `sms-process.sh` or other scripts).
