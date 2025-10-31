@@ -96,7 +96,7 @@ There is also one auxiliary script called `cutter.py` which is used to automatic
 4. `smsToFax.py` - fax page and call creator
 5. `smsToVoice.py` - voice synthesis and call creator
 6. `smsCommand.py` - SMS commands processor (just an example to be extended to be something better)
-7. `cutter.py` - cutting helper for making fax pages shorter
+7. `cutter.py` - cutting helper for making fax pages shorter (from [Mail2Fax](https://github.com/Magnetic-Fox/Mail2Fax) project)
 8. `agiGetChanInfo.py` - AGI wrapper for `getChanInfo.py`
 9. `agiPostSMS.py` - AGI tool for posting SMS-es like they were received by SMS Centre
 10. `amiSendSIPIM.py` - AMI tool for sending SIP instant messages
@@ -119,4 +119,4 @@ Free for personal use. You probably shouldn't use these solutions commercially (
 However, if You still like to anyway, please ask me before.
 
 Bartłomiej "Magnetic-Fox" Węgrzyn,
-20-24th September 2025
+September 20-24, 2025
