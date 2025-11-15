@@ -3,7 +3,7 @@
 # SMS Suite Main Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04 - 09.10.2025
+# by Magnetic-Fox, 20.04.2025 - 15.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -40,6 +40,8 @@ REFERENCE_TEXT = " having reference number "
 
 GIVE_DATE_VOICE = False
 GIVE_REFERENCE_NUMBER_VOICE = False
+
+READ_NUMBER_AS_DIGITS = True
 
 VOICE_FILE_DIR = "/var/spool/Voice/outgoing"
 CALLER_ID_VOICE = '"YourAsteriskVoiceCallerID" <Number>'
