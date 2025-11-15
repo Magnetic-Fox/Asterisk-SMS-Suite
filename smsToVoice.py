@@ -2,7 +2,7 @@
 
 # Simple SMS to Voice relay utilizing Google Text-to-speech library (GTTS) and FFmpeg
 #
-# by Magnetic-Fox, 19.04 - 13.09.2025, 09.10.2025
+# by Magnetic-Fox, 19.04.2025 - 15.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -49,10 +49,23 @@ def generateCallFile(toExtension, voiceFilePathNoExt, callFileName):
 
 	return
 
+# Number generator
+def prepareNumber(number):
+	output = ""
+
+	for digit in str(number):
+		output += digit + " "
+
+	return output[:-1]
+
 # Simple header generator
 def generateHeader(fromNumber, dateTime, messageReference):
 	header = smsSuiteConfig.HEADER_TEXT_VOICE
-	header += '"' + str(fromNumber) + '"'
+
+	if smsSuiteConfig.READ_NUMBER_AS_DIGITS:
+		header += '"' + prepareNumber(fromNumber) + '"'
+	else:
+		header += '"' + str(fromNumber) + '"'
 
 	if smsSuiteConfig.GIVE_DATE_VOICE:
 		header += smsSuiteConfig.TIME_TEXT_VOICE
