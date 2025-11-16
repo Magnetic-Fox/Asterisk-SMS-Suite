@@ -2,7 +2,7 @@
 
 # Simple SMS to Voice relay utilizing Google Text-to-speech library (GTTS) and FFmpeg
 #
-# by Magnetic-Fox, 19.04.2025 - 15.11.2025
+# by Magnetic-Fox, 19.04.2025 - 16.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -12,6 +12,7 @@ import sys
 import os
 import datetime
 import gtts
+import callFileGenerator
 import smsSuiteConfig
 
 # Simple name generation helper
@@ -27,25 +28,16 @@ def logError(errorString):
 
 # Asterisk call file creation utility (depending on smsSuiteConfig)...
 def generateCallFile(toExtension, voiceFilePathNoExt, callFileName):
-	callFile = open(callFileName, "w")
-	callFile.write("Channel: " + toExtension + "\n")
-	callFile.write("CallerID: " + smsSuiteConfig.CALLER_ID_VOICE + "\n")
-	callFile.write("MaxRetries: " + str(smsSuiteConfig.MAX_RETRIES_VOICE) + "\n")
-	callFile.write("RetryTime: " + str(smsSuiteConfig.RETRY_TIME_VOICE) + "\n")
-	callFile.write("WaitTime: " + str(smsSuiteConfig.WAIT_TIME_VOICE) + "\n")
-
-	callFile.write("Archive: ")
-
-	if smsSuiteConfig.ARCHIVE_CALL_FILE_VOICE:
-		callFile.write("yes")
-	else:
-		callFile.write("no")
-
-	callFile.write("\n")
-
-	callFile.write("Application: Playback" + "\n")
-	callFile.write("Data: " + voiceFilePathNoExt + "\n")
-	callFile.close()
+	callFileGenerator.generateCallFile(	callFileName,
+						toExtension,
+						smsSuiteConfig.CALLER_ID_VOICE,
+						"Playback",
+						voiceFilePathNoExt,
+						None,
+						smsSuiteConfig.MAX_RETRIES_VOICE,
+						smsSuiteConfig.RETRY_TIME_VOICE,
+						smsSuiteConfig.WAIT_TIME_VOICE,
+						smsSuiteConfig.ARCHIVE_CALL_FILE_VOICE	)
 
 	return
 

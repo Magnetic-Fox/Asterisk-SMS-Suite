@@ -12,6 +12,7 @@ import sys
 import os
 import datetime
 import cutter
+import callFileGenerator
 import smsSuiteConfig
 
 # Simple name generation helper
@@ -27,30 +28,22 @@ def logError(errorString):
 
 # Asterisk call file creation utility (depends on settings from smsSuiteConfig)...
 def generateCallFile(toExtension, tiffFilePath, callFileName):
-	callFile = open(callFileName, "w")
-	callFile.write("Channel: " + toExtension + "\n")
-	callFile.write("CallerID: " + smsSuiteConfig.CALLER_ID_FAX + "\n")
-	callFile.write("MaxRetries: " + str(smsSuiteConfig.MAX_RETRIES_FAX) + "\n")
-	callFile.write("RetryTime: " + str(smsSuiteConfig.RETRY_TIME_FAX) + "\n")
-	callFile.write("WaitTime: " + str(smsSuiteConfig.WAIT_TIME_FAX) + "\n")
+	faxOptVariables = [	"FAXOPT(localstationid)=" + smsSuiteConfig.FAXID,
+				"FAXOPT(ecm)=yes",
+				"FAXOPT(minrate)=2400",
+				"FAXOPT(maxrate)=14400",
+				"FAXOPT(headerinfo)=" + smsSuiteConfig.FAXHEADER	]
 
-	callFile.write("Archive: ")
-
-	if smsSuiteConfig.ARCHIVE_CALL_FILE_FAX:
-		callFile.write("yes")
-	else:
-		callFile.write("no")
-
-	callFile.write("\n")
-
-	callFile.write("Application: SendFax" + "\n")
-	callFile.write("Data: " + tiffFilePath + ",F\n")
-	callFile.write("SetVar: FAXOPT(localstationid)=" + smsSuiteConfig.FAXID + "\n")
-	callFile.write("SetVar: FAXOPT(ecm)=yes" + "\n")
-	callFile.write("SetVar: FAXOPT(minrate)=2400" + "\n")
-	callFile.write("SetVar: FAXOPT(maxrate)=14400" + "\n")
-	callFile.write("SetVar: FAXOPT(headerinfo)=" + smsSuiteConfig.FAXHEADER + "\n")
-	callFile.close()
+	callFileGenerator.generateCallFile(	callFileName,
+						toExtension,
+						smsSuiteConfig.CALLER_ID_FAX,
+						"SendFax",
+						tiffFilePath + ",F",
+						faxOptVariables,
+						smsSuiteConfig.MAX_RETRIES_FAX,
+						smsSuiteConfig.RETRY_TIME_FAX,
+						smsSuiteConfig.WAIT_TIME_FAX,
+						smsSuiteConfig.ARCHIVE_CALL_FILE_FAX	)
 
 	return
 
