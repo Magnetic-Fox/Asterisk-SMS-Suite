@@ -2,7 +2,7 @@
 
 # Simple SMS to Fax relay
 #
-# by Magnetic-Fox, 19.04.2025 - 13.09.2025, 09.10.2025
+# by Magnetic-Fox, 19.04.2025 - 16.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -94,9 +94,13 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		messageWithHeader = generateHeader(fromNumber, dateTime, messageReference) + message
 		writeMessage(textFileName, messageWithHeader)
 
+		# Prepare commands
+		papsCommand = ["paps", "--top-margin=" + str(smsSuiteConfig.FAX_TOP_MARGIN), "--font=" + smsSuiteConfig.FAX_FONT, textFileName]
+		ghscCommand = ["gs", "-sDEVICE=tiffg3", "-sOutputFile=" + tiffFileName, "-dBATCH", "-dNOPAUSE", "-dSAFER", "-dQUIET", "-"]
+
 		# Convert text to the image and convert to the G3 TIFF file
-		paps = subprocess.Popen(["paps", "--top-margin=18", "--font=Monospace 10", textFileName], stdout = subprocess.PIPE)
-		subprocess.check_output(["gs", "-sDEVICE=tiffg3", "-sOutputFile=" + tiffFileName, "-dBATCH", "-dNOPAUSE", "-dSAFER", "-dQUIET", "-"], stdin = paps.stdout)
+		paps = subprocess.Popen(papsCommand, stdout = subprocess.PIPE)
+		subprocess.check_output(ghscCommand, stdin = paps.stdout)
 		paps.wait()
 
 		# Crop unnecessary white part (makes less fax recording paper waste)
