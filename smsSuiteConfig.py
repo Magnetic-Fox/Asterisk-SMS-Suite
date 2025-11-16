@@ -3,7 +3,7 @@
 # SMS Suite Main Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04.2025 - 15.11.2025
+# by Magnetic-Fox, 20.04.2025 - 16.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -21,6 +21,9 @@ FAXHEADER = "YourAsteriskFAXHeader"
 # Set fax resolution
 # (0 - 96 dpi/STANDARD, 1 - 198 dpi/FINE, 2 - 391 dpi/SUPER FINE)
 FAX_RESOLUTION = 1
+
+FAX_TOP_MARGIN = 18
+FAX_FONT = "Monospace 10"
 
 WAIT_TIME_FAX = 40
 RETRY_TIME_FAX = 600
