@@ -2,7 +2,7 @@
 
 # Simple SMS to Fax relay
 #
-# by Magnetic-Fox, 19.04.2025 - 16.11.2025
+# by Magnetic-Fox, 19.04.2025 - 17.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -12,6 +12,7 @@ import sys
 import os
 import datetime
 import cutter
+import tiffTools
 import callFileGenerator
 import smsSuiteConfig
 
@@ -23,7 +24,7 @@ def generateDateTimeName(prefix = "", postfix = "", date = None):
 
 # Simple error logging utility...
 def logError(errorString):
-        subprocess.check_output(["logger", errorString])
+        subprocess.run(["logger", errorString])
         return
 
 # Asterisk call file creation utility (depends on settings from smsSuiteConfig)...
@@ -87,53 +88,26 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		messageWithHeader = generateHeader(fromNumber, dateTime, messageReference) + message
 		writeMessage(textFileName, messageWithHeader)
 
-		# Prepare commands
-		papsCommand = ["paps", "--top-margin=" + str(smsSuiteConfig.FAX_TOP_MARGIN), "--font=" + smsSuiteConfig.FAX_FONT, textFileName]
-		ghscCommand = ["gs", "-sDEVICE=tiffg3", "-sOutputFile=" + tiffFileName, "-dBATCH", "-dNOPAUSE", "-dSAFER", "-dQUIET", "-"]
-
-		# Convert text to the image and convert to the G3 TIFF file
-		paps = subprocess.Popen(papsCommand, stdout = subprocess.PIPE)
-		subprocess.check_output(ghscCommand, stdin = paps.stdout)
-		paps.wait()
+		# Convert text to the G3 TIFF file
+		tiffTools.textFileToTIFF(tiffFileName, textFileName, smsSuiteConfig.FAX_FONT, smsSuiteConfig.FAX_TOP_MARGIN)
 
 		# Crop unnecessary white part (makes less fax recording paper waste)
 		cutter.loadAndCrop(tiffFileName)
 
-		# Resize for standard resolution (make it smaller)
-		if smsSuiteConfig.FAX_RESOLUTION == 0:
-			subprocess.check_output(["convert", tiffFileName, "-resize", "x50%", tiffFileName])
-
-                # Resize for super fine resolution (make it bigger)
-		elif smsSuiteConfig.FAX_RESOLUTION == 2:
-			subprocess.check_output(["convert", tiffFileName, "-resize", "x200%", tiffFileName])
-
-		# Add parameters to the TIFF image (add resolution information)
-		subprocess.check_output(["tiffset", "-s", "296", "2", tiffFileName])
-		subprocess.check_output(["tiffset", "-s", "282", "204.0", tiffFileName])
-
-		# Standard resolution
-		if smsSuiteConfig.FAX_RESOLUTION == 0:
-			subprocess.check_output(["tiffset", "-s", "283", "98.0", tiffFileName])
-
-		# Super fine resolution (please note that not every fax will support it!)
-		elif smsSuiteConfig.FAX_RESOLUTION == 2:
-			subprocess.check_output(["tiffset", "-s", "283", "391.0", tiffFileName])
-
-		# Fine resolution
-		else:
-			subprocess.check_output(["tiffset", "-s", "283", "196.0", tiffFileName])
+		# Resize (if needed) and apply resolution information
+		tiffTools.resizeAndApplyResolution(tiffFileName, smsSuiteConfig.FAX_RESOLUTION)
 
 		# Move prepared fax page (G3 TIFF) to outgoing faxes directory
-		subprocess.check_output(["mv", tiffFileName, smsSuiteConfig.FAX_IMG_DIR])
+		subprocess.run(["mv", tiffFileName, smsSuiteConfig.FAX_IMG_DIR])
 
 		# Generate call file
 		generateCallFile(toExtension, smsSuiteConfig.FAX_IMG_DIR + "/" + tiffFileName, callFileName)
 
 		# Move call file to the Asterisk's temporary spool folder (which should definitely be on the same disk 'outgoing' directory is)
-		subprocess.check_output(["mv", callFileName, smsSuiteConfig.AST_TEMP_SPOOL])
+		subprocess.run(["mv", callFileName, smsSuiteConfig.AST_TEMP_SPOOL])
 
 		# Move call file to the Asterisk's 'outgoing' directory
-		subprocess.check_output(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
+		subprocess.run(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
 
 	except Exception as e:
 		logError(str(e))
