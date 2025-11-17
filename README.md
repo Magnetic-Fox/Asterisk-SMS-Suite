@@ -105,6 +105,7 @@ There is also one auxiliary script called `cutter.py` which is used to automatic
 13. `amiConfig.py` - simple configuration for AMI credentials
 14. `concatenatedSMSSender.py` - helper for sending concatenated SMS-es (for messages longer than 160 characters)
 15. `callFileGenerator.py` - helper for creating call files (moved to separate file and improved to avoid repeating nearly the same code across tools)
+16. `tiffTools.py` - helper for text-to-TIFF conversion, resizing and applying resolution information to the TIFF files
 
 In fact, only `sms-process.sh`, `agiGetChanInfo.py` and `agiPostSMS.py` are explicitly seen as used (in `extensions.conf`).
 Use of other tools is automated (seen in `sms-process.sh` or other scripts).
