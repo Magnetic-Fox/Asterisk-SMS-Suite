@@ -2,7 +2,7 @@
 
 # Simple SMS to Voice relay utilizing Google Text-to-speech library (GTTS) and FFmpeg
 #
-# by Magnetic-Fox, 19.04.2025 - 16.11.2025
+# by Magnetic-Fox, 19.04.2025 - 19.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -11,9 +11,10 @@ import tempfile
 import sys
 import os
 import datetime
-import gtts
+import voiceTools
 import callFileGenerator
 import smsSuiteConfig
+
 
 # Simple name generation helper
 def generateDateTimeName(prefix = "", postfix = "", date = None):
@@ -23,7 +24,7 @@ def generateDateTimeName(prefix = "", postfix = "", date = None):
 
 # Simple error logging utility...
 def logError(errorString):
-	subprocess.check_output(["logger", errorString])
+	subprocess.run(["logger", errorString])
 	return
 
 # Asterisk call file creation utility (depending on smsSuiteConfig)...
@@ -86,28 +87,24 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		voiceFileName = generateDateTimeName(str(toNumber) + "-", ".mp3")
 		callFileName = generateDateTimeName(str(toNumber) + "-", ".call")
 
-		# Generate voice file using Google Text-to-speech library (GTTS)
-		tts = gtts.gTTS(text = messageWithHeader, lang = smsSuiteConfig.LANG_VOICE, slow = smsSuiteConfig.VOICE_SLOW)
-		tts.save(voiceFileName)
-
-		# Convert MP3 file to 8000Hz WAVE file using FFmpeg
-		fN, fExt = os.path.splitext(voiceFileName)
-		subprocess.check_output(["ffmpeg", "-i", voiceFileName, "-af", "adelay=1s:all=true", "-ar", "8000", fN + ".wav"])
+		# Generate voice file and convert it to 8000Hz WAVE file
+		voiceTools.textToMP3(voiceFileName, messageWithHeader, smsSuiteConfig.LANG_VOICE, smsSuiteConfig.VOICE_SLOW)
+		fileName = voiceTools.MP3toWAV8(voiceFileName, smsSuiteConfig.VOICE_ADD_DELAY)
 
 		# Move voice file to its outgoing directory
-		subprocess.check_output(["mv", fN + ".wav", smsSuiteConfig.VOICE_FILE_DIR])
+		subprocess.run(["mv", fileName + ".wav", smsSuiteConfig.VOICE_FILE_DIR])
 
 		# Store path to the voice file without extension (this is needed by Asterisk)
-		voiceFilePathNoExt = smsSuiteConfig.VOICE_FILE_DIR + "/" + fN
+		voiceFilePathNoExt = smsSuiteConfig.VOICE_FILE_DIR + "/" + fileName
 
 		# Generate call file
 		generateCallFile(toExtension, voiceFilePathNoExt, callFileName)
 
 		# Move call file to the Asterisk's temporary spool directory (which definitely should be on the same disk as 'outgoing' directory!)
-		subprocess.check_output(["mv", callFileName, smsSuiteConfig.AST_TEMP_SPOOL])
+		subprocess.run(["mv", callFileName, smsSuiteConfig.AST_TEMP_SPOOL])
 
 		# Move call file to the 'outgoing' directory
-		subprocess.check_output(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
+		subprocess.run(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
 
 	except Exception as e:
 		logError(str(e))
@@ -117,6 +114,7 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		dir.cleanup()
 
 	return
+
 
 # Autorun section...
 if __name__ == "__main__":
