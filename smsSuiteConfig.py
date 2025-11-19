@@ -3,7 +3,7 @@
 # SMS Suite Main Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04.2025 - 16.11.2025
+# by Magnetic-Fox, 20.04.2025 - 19.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -35,6 +35,7 @@ ARCHIVE_CALL_FILE_FAX = True
 # Voice settings
 LANG_VOICE = "en"
 VOICE_SLOW = False
+VOICE_ADD_DELAY = True
 
 HEADER_TEXT_VOICE = "Message from "
 TIME_TEXT_VOICE = " sent "
