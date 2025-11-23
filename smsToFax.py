@@ -2,7 +2,7 @@
 
 # Simple SMS to Fax relay
 #
-# by Magnetic-Fox, 19.04.2025 - 22.11.2025
+# by Magnetic-Fox, 19.04.2025 - 23.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -89,26 +89,15 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		messageWithHeader = generateHeader(fromNumber, dateTime, messageReference) + message
 		writeMessage(textFileName, messageWithHeader)
 
-		# Go another way for standard resolution (results in better quality text)
-		if smsSuiteConfig.FAX_RESOLUTION == 0:
-			setRes = 1
-
-		else:
-			setRes = smsSuiteConfig.FAX_RESOLUTION
-
 		# Convert text to the G3 TIFF file
 		tiffTools.textFileToTIFF(	tiffFileName,
 						textFileName,
-						setRes,
+						smsSuiteConfig.FAX_RESOLUTION,
 						smsSuiteConfig.FAX_FONT,
 						smsSuiteConfig.FAX_TOP_MARGIN	)
 
 		# Crop unnecessary white part (makes less fax recording paper waste)
-		cutter.loadAndCrop(tiffFileName, cutter.calculateCutMargin(setRes, smsSuiteConfig.FAX_CUTTER_VALUE))
-
-		# Resize only for standard resolution
-		if smsSuiteConfig.FAX_RESOLUTION == 0:
-			tiffTools.resizeAndApplyResolution(tiffFileName, smsSuiteConfig.FAX_RESOLUTION)
+		cutter.loadAndCrop(tiffFileName, cutter.calculateCutMargin(smsSuiteConfig.FAX_RESOLUTION, smsSuiteConfig.FAX_CUTTER_VALUE))
 
 		# Move prepared fax page (G3 TIFF) to outgoing faxes directory
 		subprocess.run(["mv", tiffFileName, smsSuiteConfig.FAX_IMG_DIR])
