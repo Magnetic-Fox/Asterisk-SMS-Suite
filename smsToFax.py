@@ -2,7 +2,7 @@
 
 # Simple SMS to Fax relay
 #
-# by Magnetic-Fox, 19.04.2025 - 23.11.2025
+# by Magnetic-Fox, 19.04.2025 - 25.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -31,9 +31,9 @@ def logError(errorString):
 # Asterisk call file creation utility (depends on settings from smsSuiteConfig)...
 def generateCallFile(toExtension, tiffFilePath, callFileName):
 	faxOptVariables = [	"FAXOPT(localstationid)=" + smsSuiteConfig.FAXID,
-				"FAXOPT(ecm)=yes",
-				"FAXOPT(minrate)=2400",
-				"FAXOPT(maxrate)=14400",
+				"FAXOPT(ecm)=" + ("yes" if smsSuiteConfig.FAX_USE_ECM else "no"),
+				"FAXOPT(minrate)=" + str(smsSuiteConfig.FAX_MIN_RATE),
+				"FAXOPT(maxrate)=" + str(smsSuiteConfig.FAX_MAX_RATE),
 				"FAXOPT(headerinfo)=" + smsSuiteConfig.FAXHEADER	]
 
 	callFileGenerator.generateCallFile(	callFileName,

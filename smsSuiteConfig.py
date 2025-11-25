@@ -3,7 +3,7 @@
 # SMS Suite Main Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04.2025 - 22.11.2025
+# by Magnetic-Fox, 20.04.2025 - 25.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -26,6 +26,10 @@ FAX_TOP_MARGIN = 18
 FAX_FONT = "Monospace 10"
 
 FAX_CUTTER_VALUE = 94
+
+FAX_USE_ECM = True
+FAX_MIN_RATE = 2400
+FAX_MAX_RATE = 14400
 
 WAIT_TIME_FAX = 40
 RETRY_TIME_FAX = 600
