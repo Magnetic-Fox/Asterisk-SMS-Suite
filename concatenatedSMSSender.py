@@ -2,14 +2,13 @@
 
 # Concatenated SMS sender utility (utilizing smsq)
 #
-# by Magnetic-Fox, 26.04 - 08.10.2025
+# by Magnetic-Fox, 26.04.2025 - 26.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
-import sys
-import subprocess
-import datetime
 import random
+import smsTools
+
 
 # Simple message splitter (to chosen length)
 def splitMessage(message, length):
@@ -44,20 +43,15 @@ def generateUserDataHeader(messageReference, splitsCount, splitIndex):
 # Message sender utility (normal or concatenated depending on its length and messageReference width)
 def sendConcatenatedMessage(callerID, extension, originator, message, scts, messageReference, queue):
 	try:
-		if messageReference == "XPARAM_NONE":
-			# Make it random on "None"
+		if messageReference == None:
+			# Make it random on None
 			messageReference = random.randrange(0, 255, 1)
 		else:
 			messageReference = int(messageReference)
 
-		command = ["smsq", "--mt", "--tx", "--mttx-callerid=" + str(callerID), "--mttx-channel=" + extension, "--oa=" + str(originator), "--mr=" + str(messageReference), "--queue=" + str(queue)]
-
-		if scts != "XPARAM_NONE":
-			command += ["--scts=" + scts]
-
 		if len(message) <= 160:
-			command += ["--ud=" + message]
-			subprocess.check_output(command)
+			# For messages up to 160 characters long, send normal SMS (non-concatenated)
+			smsTools.sendSMS(callerID, extension, originator, message, scts, messageReference, queue)
 
 		else:
 			if messageReference < 256:
@@ -71,20 +65,13 @@ def sendConcatenatedMessage(callerID, extension, originator, message, scts, mess
 				userDataHeader = generateUserDataHeader(messageReference, len(messages), x + 1)
 
 				if x + 1 < len(messages):
-					subprocess.check_output(command + ["--udh=" + userDataHeader, "--ud=" + messages[x], "--no-dial"])
+					smsTools.sendSMS(callerID, extension, originator, messages[x], scts, messageReference, queue, userDataHeader, True)
+
 				else:
 					# Post call file only while creating last part of message
-					subprocess.check_output(command + ["--udh=" + userDataHeader, "--ud=" + messages[x]])
+					smsTools.sendSMS(callerID, extension, originator, messages[x], scts, messageReference, queue, userDataHeader)
 
-	except Exception as e:
-		return 1
+	except:
+		return False
 
-	return 0
-
-# Autorun part
-if __name__ == "__main__":
-	if len(sys.argv) == 8:
-		# Just run everything and return proper exit code
-		exit(sendConcatenatedMessage(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7]))
-	else:
-		exit(1)
+	return True
