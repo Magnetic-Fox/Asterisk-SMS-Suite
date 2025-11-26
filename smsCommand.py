@@ -2,13 +2,13 @@
 
 # Simple SMS Command utility
 #
-# by Magnetic-Fox, 01.05 - 13.09.2025, 08.10.2025
+# by Magnetic-Fox, 01.05.2025 - 26.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
-import sys
 import subprocess
 import smsSuiteConfig
+
 
 def process(fromNumber, toNumber, message):
 	if toNumber == "1000":
@@ -19,7 +19,7 @@ def process(fromNumber, toNumber, message):
 			return "Yup, this should definitely be written someday..."
 
 		elif messageParts[0] == "UPTIME":
-			return subprocess.check_output(["uptime","-p"]).decode().strip()
+			return subprocess.run(["uptime","-p"], capture_output = True).stdout.decode().strip()
 
 		elif messageParts[0] == "TEST":
 			return "Number 1000 here, message from " + str(fromNumber) + ", entry: " + message
@@ -30,10 +30,3 @@ def process(fromNumber, toNumber, message):
 		return smsSuiteConfig.WRONG_COMMAND
 
 	return smsSuiteConfig.WRONG_NUMBER
-
-if __name__ == "__main__":
-	if len(sys.argv) == 4:
-		print(process(sys.argv[1], sys.argv[2], sys.argv[3]))
-
-	else:
-		print(smsSuiteConfig.WRONG_USE)
