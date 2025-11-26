@@ -11,18 +11,18 @@ This set of tools was created for SIP-configured Asterisk working on Linux syste
 It should work with PJSIP configurations, but I haven't tested it (it's yet to be done in my configuration).
 These tools might need some kind of fine tuning to work with PJSIP configurations properly.
 
-Default configuration values (provided in configuration scripts and `sms-process.sh`) assume that Asterisk and its directories are located in their default locations (`/etc/asterisk`, `/var/spool/asterisk`, etc.) and that there is a dedicated directory for all scripts at `/etc/asterisk/scripts`.
+Default configuration values (provided in the `smsSuiteConfig.py` file) assume that Asterisk and its directories are located in their default locations (`/etc/asterisk`, `/var/spool/asterisk`, etc.) and that there is a dedicated directory for all scripts at `/etc/asterisk/scripts`.
 
 **This solution was created for Asterisk 16.28.** However it should work with the newer versions.
 I haven't tested if these tools can work properly on systems other than Linux.
 
 ## Differences between SMS technology and SIP messaging
 
-People often confuse SMS technology with SIP instant messaging. **They are different protocols!**
-SMS requires some kind of a central point (also called SMS Centre/SMS Centrum) which acts like a server which receive, store, process and resend Your messages (and, ideally, should keep Your messages for some time if the receiving end is offline).
-SIP messaging is much more automated and then looks more like a point-to-point service. It doesn't explicitly use such a thing like a SMS Centre. **But it also doesn't mean Asterisk server have nothing to do here.** However, this technology is less powerful than classic SMS service.
+As far as I have seen, people often confuse SMS technology with SIP instant messaging. **They are completely different protocols!**
+SMS requires some kind of an explicit central point (also called SMS Centre/SMS Centrum) which acts like a server which receive, store, process and resend messages (and, ideally, should keep them for some time if the receiving end is offline).
+SIP messaging is much more automated and then looks more like a point-to-point service as it doesn't explicitly use such a thing like SMS Centre (**but Asterisk still has to do processing internally**). However, this technology is definitely less powerful than classic SMS service.
 
-And, the most important thing - SMS Centre actually **can** work even on the classic landline technology (POTS) using FSK modulation (which is, in my opinion, such a great thing that it really works in Asterisk!) allowing You to use old analogue telephone with SMS support.
+And, the most important thing - SMS Centre actually **can** work even on the classic landline telephony (POTS) using FSK modulation (which is, in my opinion, such a great thing that it really works in Asterisk!) allowing You to use an old analogue phone with SMS support with it.
 In contrast, **SIP messages can't** as they are protocol based. I know no VoIP ATA that could turn this into the FSK SMS or something similar. There are probably IP phones supporting SIP messaging, but I don't know of any. The only ones I know and have used are software SIP clients like MicroSIP or Zoiper (both really good).
 
 ## Database with chosen messaging services
@@ -35,18 +35,18 @@ There are at least three columns needed:
 * Message -> varchar(1) - character indicating chosen service
 * Extension -> varchar(100) - Asterisk extension (e.g. SIP/1000)
 
-`getChanInfo.py` was prepared to utilize MySQL database (using MySQL connector). If You need to use other database system, You have to change it in this script.
+`getChanInfo.py` is responsible for gathering this information and relay it to other scripts. It was prepared to utilize MySQL database (using MySQL connector). If You need to use other database system, You have to change it in this script.
 
 ## Service indicators
 
 I've defined six indicators for services:
 
 * S - normal SMS operation (SMS Centre)
-* F - send message as a fax
-* V - send message as a voice (make a voice call with text synthesis)
-* C - simple command service (automated SMS reciver and answerer)
+* F - delivering messages as faxes
+* V - delivering messages as a voice synthesis
+* C - being simple command service (automated SMS reciver and answerer)
 * T - SIP messaging operation
-* N - no messaging at all (disable messaging feature for the chosen number)
+* N - no messaging at all (disable messaging delivery feature for the chosen number)
 
 ## Dependencies
 
@@ -55,13 +55,15 @@ Here is the list (hope I remember everything):
 
 1. Asterisk (of course)
 2. smsq (should be part of the Asterisk package)
-3. pyst2 (Python Asterisk helper)
+3. pyst2 (Python Asterisk helper; for AGI and AMI)
 4. Pillow (PIL)
-5. gTTS (simple Python voice synthesis helper utilizing Google Translate, as far as I know)
-6. paps
-7. ghostscript (gs)
-8. Imagemagick (convert)
-9. libtiff-tools (tiffset)
+5. gTTS (simple Python voice synthesis helper utilizing Google Translate)
+6. MySQL Connector for Python (mysql.connector)
+7. paps
+8. ghostscript (gs)
+9. Imagemagick (convert)
+10. libtiff-tools (tiffset)
+11. FFmpeg (ffmpeg)
 
 ## Default (and additional) directories
 
@@ -81,34 +83,36 @@ Here is the list:
 
 Additional above means that those directories didn't exist previously in the installation.
 They were created by me to make performing additional functions easier.
-They are now **used and necessary** in this software (`scripts` in the configurations, `T.38` and `Voice` in spool).
+They are now **used and necessary** in this software (`scripts` in the configurations, `T.38` and `Voice` in spool) unless You decide to place things another way (everything can be configured via `smsSuiteConfig.py` file).
 
 ## Tools, in brief
 
-The main functionality is provided by `extensions.conf` file and `sms-process.sh` script.
-Extensions file defines all needed extensions and some basic operations (I've uploaded part of mine describing how to use my tools) and the Bash script processes all SMS-es previously received by SMS Centre.
-All other Python scripts are used to get information about channel and chosen service, to prepare other type of message (fax, voice synthesis, etc.) or to post SIP message, etc.
-There is also one auxiliary script called `cutter.py` which is used to automatically cut prepared fax page to help waste less paper on the receiving fax machine.
+The main functionality is provided by `extensions.conf` file and `smsProcess.py` script.
+Extensions file define all needed extensions and some basic operations (I've uploaded part of mine describing how to use my tools) and the Python script processes all SMS-es received by SMS Centre (also these received before which weren't processed and remains in the `morx` directory).
+All other scripts are just tools used by the main script to get information about channel and chosen service, prepare other type of message (fax, voice synthesis, etc.) or to post SIP message, etc.
 
-1. `extensions.conf` - main part of the job, which still is in the Asterisk's extensions configuration
-2. `sms-process.sh` - main SMS processor/router (also have some configuration variables inside, probably to be changed before use!)
+1. `extensions.conf` - configuration file for Asterisk, which still does main part of the job (it's called `extensions.conf.part` in this repository, because it's only a part here)
+2. `smsProcess.py` - main SMS processor/router
 3. `getChanInfo.py` - helper for gathering number information (chosen service, channel extension, etc.)
 4. `smsToFax.py` - fax page and call creator
 5. `smsToVoice.py` - voice synthesis and call creator
 6. `smsCommand.py` - SMS commands processor (just an example to be extended to be something better)
 7. `cutter.py` - cutting helper for making fax pages shorter (from [Mail2Fax](https://github.com/Magnetic-Fox/Mail2Fax) project)
 8. `agiGetChanInfo.py` - AGI wrapper for `getChanInfo.py`
-9. `agiPostSMS.py` - AGI tool for posting SMS-es like they were received by SMS Centre
-10. `amiSendSIPIM.py` - AMI tool for sending SIP instant messages
-11. `smsSuiteConfig.py` - simple configuration script for most of the tools
-12. `sqlConfig.py` - simple configuration for SQL credentials
-13. `amiConfig.py` - simple configuration for AMI credentials
-14. `concatenatedSMSSender.py` - helper for sending concatenated SMS-es (for messages longer than 160 characters)
-15. `callFileGenerator.py` - helper for creating call files (moved to separate file and improved to avoid repeating nearly the same code across tools)
-16. `tiffTools.py` - helper for text-to-TIFF conversion, resizing and applying resolution information to the TIFF files (also from [Mail2Fax](https://github.com/Magnetic-Fox/Mail2Fax) project)
+9. `agiPostSMS.py` - AGI tool for posting SMS-es like they were received by SMS Centre (for routing SIP messages to SMS)
+10. `amiSendSIPIM.py` - AMI tool for sending SIP instant messages (for routing SMS-es to SIP messages)
+11. `concatenatedSMSSender.py` - helper for sending concatenated SMS-es (for messages longer than 160 characters)
+12. `callFileGenerator.py` - helper for creating call files
+13. `tiffTools.py` - helper for text-to-TIFF conversion, resizing and applying resolution information to the TIFF files (also from [Mail2Fax](https://github.com/Magnetic-Fox/Mail2Fax) project)
+14. `voiceTools.py` - helper for voice synthesis and converting audio files to 8000 Hz WAVE
+15. `smsTools.py` - helper for sending SMS-es and gathering data from message files
+16. `suiteLogger.py` - project-specific helper for easy warnings and errors logging
+17. `smsSuiteConfig.py` - configuration file for all tools
+18. `sqlConfig.py` - configuration file for SQL credentials
+19. `amiConfig.py` - configuration file for AMI credentials
 
-In fact, only `sms-process.sh`, `agiGetChanInfo.py` and `agiPostSMS.py` are explicitly seen as used (in `extensions.conf`).
-Use of other tools is automated (seen in `sms-process.sh` or other scripts).
+In fact, only `smsProcess.py`, `agiGetChanInfo.py` and `agiPostSMS.py` are explicitly seen as used (in `extensions.conf`).
+Use of other tools is automated (seen in `smsProcess.py` or other scripts).
 
 ## Disclaimer
 
@@ -121,4 +125,4 @@ Free for personal use. You probably shouldn't use these solutions commercially (
 However, if You still like to anyway, please ask me before.
 
 Bartłomiej "Magnetic-Fox" Węgrzyn,
-April 17th, 2025 - November, 17th 2025
+April 17, 2025 - November 26, 2025
