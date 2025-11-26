@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
-# Simple SMS to Voice relay utilizing Google Text-to-speech library (GTTS) and FFmpeg
+# SMS to voice processor
+# utilizing Google Text-to-speech library (GTTS) and FFmpeg
 #
-# by Magnetic-Fox, 19.04.2025 - 19.11.2025
+# by Magnetic-Fox, 19.04.2025 - 26.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
 import subprocess
 import tempfile
-import sys
 import os
 import datetime
 import voiceTools
 import callFileGenerator
 import smsSuiteConfig
+import suiteLogger
 
 
 # Simple name generation helper
@@ -21,11 +22,6 @@ def generateDateTimeName(prefix = "", postfix = "", date = None):
 	if date == None:
 		date = datetime.datetime.now()
 	return prefix + date.strftime("%Y-%m-%d-%H-%M-%S-%f") + postfix
-
-# Simple error logging utility...
-def logError(errorString):
-	subprocess.run(["logger", errorString])
-	return
 
 # Asterisk call file creation utility (depending on smsSuiteConfig)...
 def generateCallFile(toExtension, voiceFilePathNoExt, callFileName):
@@ -107,30 +103,10 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		subprocess.run(["mv", smsSuiteConfig.AST_TEMP_SPOOL + "/" + callFileName, smsSuiteConfig.ASTERISK_SPOOL])
 
 	except Exception as e:
-		logError(str(e))
+		suiteLogger.logError(str(e))
 
 	finally:
 		os.chdir(oldDir)
 		dir.cleanup()
 
 	return
-
-
-# Autorun section...
-if __name__ == "__main__":
-	exitCode = 0
-
-	try:
-		if len(sys.argv) == 7:
-			process(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
-			exitCode = 0
-
-		else:
-			logError(smsSuiteConfig.WRONG_USE)
-			exitCode = 1
-
-	except Exception as e:
-		logError(str(e))
-		exitCode = 1
-
-	exit(exitCode)
