@@ -1,11 +1,46 @@
 #!/usr/bin/env python3
 
-# SMS Suite Main Configuration File
+# SMS Suite Configuration File
 # (some kind of defaults - have to be changed before use!)
 #
-# by Magnetic-Fox, 20.04.2025 - 25.11.2025
+# by Magnetic-Fox, 20.04.2025 - 26.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
+
+
+# SMS centre settings
+SMS_CENTRE_RECV_NR = 9000
+SMS_CENTRE_SEND_NR = 9001
+USE_CONCATENATED_SMS = True
+
+
+# Logger settings
+LOGGER_ADDRESS = "/dev/log"
+
+
+# Error texts presented to user (avoid non-ASCII characters!)
+CANNOT_DELIVER = "Cannot deliver SMS to"
+CANNOT_DELIVER_R1 = "VoIP user not logged in."
+CANNOT_DELIVER_R2 = "Subscriber has disabled messaging service."
+CANNOT_DELIVER_R3 = "Number does not exist."
+COMMAND_ERROR = "Unable to complete the order. Please try again in a few minutes."
+
+# Error texts logged on server (whatever You wish)
+CANNOT_SEND = "Cannot send SMS to"
+CANNOT_DELETE_TASK = "Cannot safely remove received SMS!"
+REJECTED_FILE = " rejected."
+REJECTED_FILE_R1 = "Invalid message file."
+REJECTED_FILE_R2 = "Not a file?"
+
+
+# Asterisk's main spool directory
+ASTERISK_SPOOL = "/var/spool/asterisk/outgoing"
+
+# Asterisk's received SMS-es spool directory
+AST_SMS_SPOOL = "/var/spool/asterisk/sms/morx"
+
+# Asterisk's temporary spool directory
+AST_TEMP_SPOOL = "/var/spool/asterisk/tmp"
 
 
 # Fax settings
@@ -37,7 +72,6 @@ MAX_RETRIES_FAX = 10
 ARCHIVE_CALL_FILE_FAX = True
 
 
-
 # Voice settings
 LANG_VOICE = "en"
 VOICE_SLOW = False
@@ -60,24 +94,6 @@ WAIT_TIME_VOICE = 40
 RETRY_TIME_VOICE = 600
 MAX_RETRIES_VOICE = 10
 ARCHIVE_CALL_FILE_VOICE = True
-
-
-
-# Additional SIP IM settings
-# remember to enable concatenated SMS support in the Bash script too for this to work properly!
-USE_CONCATENATED_SMS = True
-
-
-
-# Asterisk's main spool folder
-ASTERISK_SPOOL = "/var/spool/asterisk/outgoing"
-
-# Asterisk's received SMS-es spool folder
-AST_SMS_SPOOL = "/var/spool/asterisk/sms/morx"
-
-# Asterisk's temporary spool directory
-AST_TEMP_SPOOL = "/var/spool/asterisk/tmp"
-
 
 
 # Miscellaneous
