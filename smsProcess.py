@@ -2,7 +2,7 @@
 
 # SMS Processor
 #
-# by Magnetic-Fox, 17.04.2025 - 26.11.2025
+# by Magnetic-Fox, 17.04.2025 - 27.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -16,33 +16,9 @@ import smsToFax
 import smsToVoice
 import smsCommand
 import smsTools
-import concatenatedSMSSender
 import amiSendSIPIM
 import suiteLogger
 
-
-# Get channel information (with try and except applied)
-def tryToGetChanInfo(number):
-	try:
-		# Get number information (extension + chosen service)
-		extension, service = getChanInfo.getChanInfo(number)
-
-	except:
-		# Set to nothing on error
-		extension = ""
-		service = ""
-
-	# Return got information
-	return extension, service
-
-# Wrapper for sending regular or concatenated SMS
-def sendProperSMS(smsCentreSendingNumber, toExtension, source, message, dateTime, messageReference, queue, useConcatenation = smsSuiteConfig.USE_CONCATENATED_SMS):
-	if useConcatenation and len(message) > 160:
-		concatenatedSMSSender.sendConcatenatedMessage(smsCentreSendingNumber, toExtension, source, message, dateTime, messageReference, queue)
-	else:
-		smsTools.sendSMS(smsCentreSendingNumber, toExtension, source, message, dateTime, messageReference, queue)
-
-	return
 
 # Messages processing function
 def processMessages(messagesDirectory = smsSuiteConfig.AST_SMS_SPOOL):
@@ -51,11 +27,11 @@ def processMessages(messagesDirectory = smsSuiteConfig.AST_SMS_SPOOL):
 			try:
 				# Get message file and recipient information
 				source, destination, message, dateTime, reference = smsTools.getMessageContents(messagesDirectory + "/" + messageFile)
-				extension, service = tryToGetChanInfo(destination)
+				extension, service = getChanInfo.tryToGetChanInfo(destination)
 
 				# If recipient want SMS-es
 				if service == "S":
-					sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, extension, source, message, dateTime, reference, destination)
+					smsTools.sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, extension, source, message, dateTime, reference, destination, smsSuiteConfig.USE_CONCATENATED_SMS)
 
 				# If recipient want faxes
 				elif service == "F":
@@ -76,11 +52,11 @@ def processMessages(messagesDirectory = smsSuiteConfig.AST_SMS_SPOOL):
 						suiteLogger.logWarning(commandResponse)
 
 					# Get sender information (to send response)
-					sourceExtension, sourceService = tryToGetChanInfo(source)
+					sourceExtension, sourceService = getChanInfo.tryToGetChanInfo(source)
 
 					# If recipient want SMS-es
 					if sourceService == "S":
-						sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, sourceExtension, destination, commandResponse, None, None, source)
+						smsTools.sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, sourceExtension, destination, commandResponse, None, None, source, smsSuiteConfig.USE_CONCATENATED_SMS)
 
 					# If recipient want SIP messages
 					elif sourceService == "T":
@@ -95,14 +71,14 @@ def processMessages(messagesDirectory = smsSuiteConfig.AST_SMS_SPOOL):
 				elif service == "T":
 					if amiSendSIPIM.sendMessage(source, destination, message) != 0:
 						# Get sender information (to send error)
-						sourceExtension, sourceService = tryToGetChanInfo(source)
+						sourceExtension, sourceService = getChanInfo.tryToGetChanInfo(source)
 
 						# Prepare error message
 						errorMessage = smsSuiteConfig.CANNOT_DELIVER + " " + str(destination) + ". " +smsSuiteConfig.CANNOT_DELIVER_R1
 
 						# If recipient want SMS-es
 						if sourceService == "S":
-							sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, sourceExtension, smsSuiteConfig.SMS_CENTRE_RECV_NR, errorMessage, None, None, source)
+							smsTools.sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, sourceExtension, smsSuiteConfig.SMS_CENTRE_RECV_NR, errorMessage, None, None, source, smsSuiteConfig.USE_CONCATENATED_SMS)
 
 						# Otherwise
 						else:
@@ -111,7 +87,7 @@ def processMessages(messagesDirectory = smsSuiteConfig.AST_SMS_SPOOL):
 				# Otherwise
 				else:
 					# Get sender information (to send error)
-					sourceExtension, sourceService = tryToGetChanInfo(source)
+					sourceExtension, sourceService = getChanInfo.tryToGetChanInfo(source)
 
 					# If recipient want SMS-es
 					if sourceService == "S":
@@ -124,7 +100,7 @@ def processMessages(messagesDirectory = smsSuiteConfig.AST_SMS_SPOOL):
 							errorMessage = smsSuiteConfig.CANNOT_DELIVER + " " + str(destination) + ". " + smsSuiteConfig.CANNOT_DELIVER_R3
 
 						# Send error message
-						sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, sourceExtension, smsSuiteConfig.SMS_CENTRE_RECV_NR, errorMessage, None, None, source)
+						smsTools.sendProperSMS(smsSuiteConfig.SMS_CENTRE_SEND_NR, sourceExtension, smsSuiteConfig.SMS_CENTRE_RECV_NR, errorMessage, None, None, source, smsSuiteConfig.USE_CONCATENATED_SMS)
 
 					# Otherwise
 					else:
