@@ -2,7 +2,7 @@
 
 # Channel information gathering utility
 #
-# by Magnetic-Fox, 19.04.2025 - 26.11.2025
+# by Magnetic-Fox, 19.04.2025 - 27.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -42,3 +42,17 @@ def getChanInfo(number):
 
 	except:
 		return None
+
+# Get channel information (with try and except applied)
+def tryToGetChanInfo(number):
+	try:
+		# Get number information (extension + chosen service)
+		extension, service = getChanInfo(number)
+
+	except:
+		# Set to nothing on error
+		extension = ""
+		service = ""
+
+	# Return information
+	return extension, service
