@@ -2,7 +2,7 @@
 
 # SMS to fax processor
 #
-# by Magnetic-Fox, 19.04.2025 - 26.11.2025
+# by Magnetic-Fox, 19.04.2025 - 27.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -59,14 +59,6 @@ def generateHeader(fromNumber, dateTime, messageReference):
 
 	return header
 
-# Very simple function for writing message to the text file
-def writeMessage(messageFileName, message):
-	txt = open(messageFileName, "w")
-	txt.write(message)
-	txt.close()
-
-	return
-
 # All processing utility...
 def process(fromNumber, toNumber, toExtension, message, dateTime, messageReference):
 	try:
@@ -76,20 +68,15 @@ def process(fromNumber, toNumber, toExtension, message, dateTime, messageReferen
 		os.chdir(dir.name)
 
 		# Generate file names (to which number + date and time)
-		textFileName = generateDateTimeName(str(toNumber) + "-", ".txt")
 		tiffFileName = generateDateTimeName(str(toNumber) + "-", ".tiff")
 		callFileName = generateDateTimeName(str(toNumber) + "-", ".call")
 
-		# Prepare message with header and write it out to the text file
-		messageWithHeader = generateHeader(fromNumber, dateTime, messageReference) + message
-		writeMessage(textFileName, messageWithHeader)
-
-		# Convert text to the G3 TIFF file
-		tiffTools.textFileToTIFF(	tiffFileName,
-						textFileName,
-						smsSuiteConfig.FAX_RESOLUTION,
-						smsSuiteConfig.FAX_FONT,
-						smsSuiteConfig.FAX_TOP_MARGIN	)
+		# Convert prepared text (header + message) to the G3 TIFF file
+		tiffTools.textToTIFF(	tiffFileName,
+					generateHeader(fromNumber, dateTime, messageReference) + message,
+					smsSuiteConfig.FAX_RESOLUTION,
+					smsSuiteConfig.FAX_FONT,
+					smsSuiteConfig.FAX_TOP_MARGIN	)
 
 		# Crop unnecessary white part (makes less fax recording paper waste)
 		cutter.loadAndCrop(tiffFileName, cutter.calculateCutMargin(smsSuiteConfig.FAX_RESOLUTION, smsSuiteConfig.FAX_CUTTER_VALUE))
