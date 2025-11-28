@@ -2,9 +2,12 @@
 
 # Simple Asterisk call file generator
 #
-# by Magnetic-Fox, 19.04.2025 - 16.11.2025
+# by Magnetic-Fox, 19.04.2025 - 28.11.2025
 #
 # (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
+
+import subprocess
+import datetime
 
 
 # Asterisk call file generator function
@@ -36,3 +39,14 @@ def generateCallFile(callFileName, channel, callerID, application, data, additio
 	callFile.close()
 
 	return
+
+# Call file moving helper
+def moveCallFile(callFileName, tempDirectory = "/var/spool/asterisk/tmp", outgoingDirectory = "/var/spool/asterisk/outgoing"):
+	subprocess.run(["mv", tempDirectory + "/" + callFileName, outgoingDirectory])
+	return
+
+# Simple name generation helper
+def generateDateTimeName(prefix = "", postfix = "", date = None):
+	if date == None:
+		date = datetime.datetime.now()
+	return prefix + date.strftime("%Y-%m-%d-%H-%M-%S-%f") + postfix
