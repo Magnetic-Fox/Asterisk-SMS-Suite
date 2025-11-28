@@ -62,3 +62,10 @@ def prepareNumber(number):
 		output += digit + " "
 
 	return output[:-1]
+
+# Simple helper for returning time parts as a string proper way (4 -> 04, etc.)
+def outputWithZero(input):
+	if input < 10:
+		return "0" + str(input)
+	else:
+		return str(input)
