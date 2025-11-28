@@ -50,3 +50,24 @@ def generateDateTimeName(prefix = "", postfix = "", date = None):
 	if date == None:
 		date = datetime.datetime.now()
 	return prefix + date.strftime("%Y-%m-%d-%H-%M-%S-%f") + postfix
+
+# Function for applying chosen date and time to the call file
+def applyDateTime(callFileName, dateTimeString):
+	subprocess.run(["touch", "-d", dateTimeString, callFileName])
+	return
+
+# Simple call file scheduler helper (this day or next according to the hour and minute)
+def generateDateForCallFile(hour, minute, format = "%Y-%m-%d %H:%M:%S", currentDateTime = None):
+	if currentDateTime == None:
+		currentDateTime = datetime.datetime.now()
+
+	temporaryDateTime = currentDateTime.replace(hour = hour).replace(minute = minute).replace(second = 0).replace(microsecond = 0)
+
+	if temporaryDateTime < currentDateTime:
+		temporaryDateTime += datetime.timedelta(days=1)
+
+	if format == None:
+		return temporaryDateTime
+
+	else:
+		return temporaryDateTime.strftime(format)
