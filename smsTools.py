@@ -2,9 +2,9 @@
 
 # SMS tools (with support for concatenated messages)
 #
-# by Magnetic-Fox, 17.04.2025 - 27.11.2025
+# by Magnetic-Fox, 17.04.2025 - 02.01.2026
 #
-# (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
+# (C)2025-2026 Bartłomiej "Magnetic-Fox" Węgrzyn
 
 import random
 import subprocess
@@ -123,3 +123,21 @@ def sendProperSMS(smsCentreSendingNumber, toExtension, source, message, dateTime
 		sendSMS(smsCentreSendingNumber, toExtension, source, message, dateTime, messageReference, queue)
 
 	return
+
+# Function for preparing the file name and write data to the actual file
+def writeSMS(path, data, da, scts, mr):
+	smsFile = open(path + "/" + da + "." + scts + "-" + mr, "w")
+	smsFile.write(data)
+	smsFile.close()
+
+	return
+
+# Function for preparing data for the SMS file
+def prepareSMS(oa, da, ud, scts, mr):
+	output = "oa=" + oa + "\n"
+	output += "da=" + da + "\n"
+	output += "ud=" + ud + "\n"
+	output += "scts=" + scts + "\n"
+	output += "mr=" + mr
+
+	return output
