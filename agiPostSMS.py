@@ -2,9 +2,9 @@
 
 # AGI Script for posting SIP IM as an SMS
 #
-# by Magnetic-Fox, 10-13.09.2025, 08.10.2025
+# by Magnetic-Fox, 10.09.2025 - 02.01.2026
 #
-# (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
+# (C)2025-2026 Bartłomiej "Magnetic-Fox" Węgrzyn
 
 import sys
 import base64
@@ -13,7 +13,9 @@ import random
 import asterisk.agi
 import unidecode
 import getChanInfo
+import smsTools
 import smsSuiteConfig
+
 
 # Function for dividing string to substrings of chosen size
 def divideString(inputString, size):
@@ -28,24 +30,6 @@ def divideString(inputString, size):
 
 	except:
 		pass
-
-	return output
-
-# Function for preparing the file name and write data to the actual file
-def writeSMS(path, data, da, scts, mr):
-	smsFile = open(path + "/" + da + "." + scts + "-"  +mr, "w")
-	smsFile.write(data)
-	smsFile.close()
-
-	return
-
-# Function for preparing data for the SMS file
-def prepareSMS(oa, da, ud, scts, mr):
-	output = "oa=" + oa + "\n"
-	output += "da=" + da + "\n"
-	output += "ud=" + ud + "\n"
-	output += "scts=" + scts + "\n"
-	output += "mr=" + mr
 
 	return output
 
@@ -93,7 +77,7 @@ def AGI_getAndPostSMS():
 			scts = str(datetime.datetime.now().replace(microsecond = 0).isoformat())
 			mr = str(random.randrange(0, 255, 1))
 
-			writeSMS(smsSuiteConfig.AST_SMS_SPOOL, prepareSMS(oa, da, s_ud, scts, mr), da, scts, mr)
+			smsTools.writeSMS(smsSuiteConfig.AST_SMS_SPOOL, smsTools.prepareSMS(oa, da, s_ud, scts, mr), da, scts, mr)
 
 		return 0
 
