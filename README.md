@@ -196,7 +196,8 @@ anything. The software and solutions here are provided "AS IS" and
 ## License
 
 Free for personal use. You probably shouldn't use these solutions
-commercially (as they are not so good tested to be intended to).  
+commercially (as they are not so good tested to be intended to).
+
 However, if You still like to anyway, please ask me before.
 
 Bartłomiej "Magnetic-Fox" Węgrzyn,  
