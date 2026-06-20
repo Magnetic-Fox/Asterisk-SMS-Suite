@@ -2,9 +2,9 @@
 
 # Simple Asterisk's AMI sending SIP IM utility
 #
-# by Magnetic-Fox, 13.09.2025 - 27.11.2025
+# by Magnetic-Fox, 13.09.2025 - 27.11.2025, 20.06.2026
 #
-# (C)2025 Bartłomiej "Magnetic-Fox" Węgrzyn
+# (C)2025-2026 Bartłomiej "Magnetic-Fox" Węgrzyn
 
 import base64
 import asterisk.manager
@@ -22,7 +22,7 @@ def sendMessage(msgFrom, msgTo, message):
 		# Prepare action data (message to send)
 		action = {"Action": "MessageSend",
 			"From": str(msgFrom),
-			"To": "sip:"+str(msgTo),
+			"To": "pjsip:"+str(msgTo),
 			"Base64Body": base64.b64encode(message.encode("utf8")).decode("utf8")}
 
 		# Send action to Asterisk and logout

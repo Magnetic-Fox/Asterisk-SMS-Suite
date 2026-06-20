@@ -2,7 +2,7 @@
 
 # AGI Script for posting SIP IM as an SMS
 #
-# by Magnetic-Fox, 10.09.2025 - 02.01.2026
+# by Magnetic-Fox, 10.09.2025 - 20.06.2026
 #
 # (C)2025-2026 Bartłomiej "Magnetic-Fox" Węgrzyn
 
@@ -43,9 +43,7 @@ def AGI_getAndPostSMS():
 			da = agi.get_variable("SMS_DA")
 
 		else:
-			oa = agi.get_variable("MESSAGE(from)")
-			oa = oa[oa.find("sip:") + 4:oa.find("@")]
-
+			oa = agi.get_variable("MESSAGE_FROM")
 			da = agi.get_variable("EXTEN")
 
 		# asterisk.agi library doesn't like new lines, so thanks God
