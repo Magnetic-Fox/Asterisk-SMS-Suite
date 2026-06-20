@@ -200,4 +200,4 @@ commercially (as they are not so good tested to be intended to).
 However, if You still like to anyway, please ask me before.
 
 Bartłomiej "Magnetic-Fox" Węgrzyn,  
-April 17th, 2025 - June 20th, 2025
+April 17th, 2025 - June 20th, 2026
